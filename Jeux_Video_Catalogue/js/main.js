@@ -1,5 +1,5 @@
 // creation locvalStorage
-// localStorage.setItem('likes','[]')
+localStorage.setItem('likes','[]')
 
 //jib data li localStorage
 let localData=JSON.parse(localStorage.getItem('likes'));
@@ -19,6 +19,7 @@ hero.style.backgroundImage = "url('./images/Background.png')";
 //cart continer
 const x =document.querySelector('#x');
 let url="https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20";
+
 
 const next =document.querySelector("#next");
 
