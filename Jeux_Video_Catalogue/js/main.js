@@ -1,0 +1,283 @@
+// creation locvalStorage
+// localStorage.setItem('likes','[]')
+
+//jib data li localStorage
+let localData=JSON.parse(localStorage.getItem('likes'));
+
+//list icons platforms
+let iconsPlat =[  {'type':'PC','data':'<i class="text-[13px] text-gray-400 fa-brands fa-windows"></i>'}
+                 ,{'type':'PlayStation','data':'<i class="text-[13px] text-gray-400 fa-brands fa-playstation"></i>'}
+                 ,{'type':'Xbox','data':'<i class="text-[13px] text-gray-400 fa-brands fa-xbox"></i>'}
+                 ,{'type':'Linux','data':'<i class="text-[13px] text-gray-400 fa-brands fa-linux"></i>'}
+                 ,{'type':'Nintendo','data':'<i class="text-[13px] text-gray-400 fa-solid fa-gamepad"></i>'}
+               ];
+
+//hero section :
+const hero =document.querySelector('#hero-section');
+hero.style.backgroundImage = "url('./images/Background.png')";
+
+//cart continer
+const x =document.querySelector('#x');
+let url="https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20";
+
+const next =document.querySelector("#next");
+
+// pour sauvegarder le next url
+let result ;
+//bach maw9a3ch lodin o loeding l2asli kayn
+let isload=0;
+
+async function getData(urlx){
+          //list platforms
+          let platforms =[];
+
+          //f7alat loading ba9i ki loadi
+          if(isload===1){
+              return ;
+          }
+            const loadingDiv = document.createElement('div');
+            loadingDiv.innerHTML='<div class="loadings"><div></div><div></div><div></div></div>'
+
+            isload=1;
+
+            loadingDiv.classList.add('loading');
+            x.appendChild(loadingDiv);
+            x.className='grid md:grid-cols-2 md:gap-x-8 lg:grid-cols-3 lg:grid-cols-4   gap-4 xl:gap-[18px] '
+            const response = await fetch(urlx);
+            const data = await response.json();
+
+          //crete element in dom
+     data.results.forEach(elm=>{
+              
+          const card =document.createElement('div');
+          card.className='max-w-[87%] flex flex-col  rounded-[16px] shadow-md hover:scale-[1.05] transition-transform border border-gray-600  p-5 hover:shadow-[0px_0px_12px_rgba(151,173,172,0.210)] sm:max-w-[431px]  md:max-w-[341px] lg:max-w-[281px] justify-self-center';
+
+          //get platforms game 
+
+                elm.parent_platforms.forEach((platf)=>{
+                         platforms=[...platforms,platf.platform.name];
+                })
+                
+                let div_pltf='';
+                platforms.forEach(plat=>{
+                      iconsPlat.forEach(icon=>{
+                           if(icon.type==plat){
+                                
+                                div_pltf+=icon.data;
+                           }
+                           
+                      })
+                })
+
+
+          //check card liked or not
+                  
+          let isliked;
+          let cmp=0;
+          localData.forEach(data=>{
+                  if(data.id ==elm.id ){
+                       cmp++;
+                  }
+          });
+     
+     //tra liya mochkil kal9a {'} f description 
+          let derpt=elm.description.replace(/'/g, "");
+          derpt = derpt.replace(/(\r\n|\n|\r)/g, " ");
+       //hna bach m3a dakhla iban liya wach l9alb 3amar wla la (liked or noLiked)
+          if(cmp==0){
+               isliked=`<i onclick="addFavorites(this,'${elm.id}','${elm.name}','${elm.background_image}','${elm.rating}','${elm.updated}','${platforms}','${derpt}','${elm.released}')" data-like="noLiked" class="fa-regular fa-heart text-gray-400 hover:text-[#9006ac9d] "></i>`
+          }else{
+               isliked=`<i onclick="addFavorites(this,'${elm.id}','${elm.name}','${elm.backgroundImage}','${elm.rating}','${elm.updated}','${platforms}','${derpt},'${elm.released}')" data-like="Liked" class="text-[#9006ac9d]  hover:text-gray-400  fa-solid fa-heart"></i>`
+          }
+                
+                card.innerHTML = `<div class="flex justify-between h-12" >
+                 <div id='plat_catr' class='flex gap-2'>${div_pltf}</div> <span class='text-end pb-4'>${isliked}</span></div>
+                            <a href="./details.html"> 
+                            <div class="w-full h-40">
+                               <img src="${elm.background_image}" alt="${elm.name}" class="w-full h-full object-cover rounded  min-w-[280px] max-w-[280px] sm:min-w-[340px] md:min-w-[300px] lg:min-w-[240px]">
+                            </div>
+
+                            <div class="p-3">
+                                  <h3 class="text-sm  sm:text-[18px] font-semibold text-white truncate">${elm.name}</h3>
+                        
+                                  <div class="mt-[8px] flex items-center justify-between text-xs text-gray-500">
+                                    <span> ⨂ ${elm.rating }</span>
+                                  </div>
+                                   <div class="mt-[18px] flex items-center justify-between text-xs text-gray-500">
+                                        <span class="text-gray-300">updated : </span> 
+                                        <span>${elm.updated }</span>
+                                    </div>
+                            </div>
+                            </a> `;
+                            
+                x.appendChild(card);
+                //bach njib li platform , 7it kitamhaw f div_pltf='';
+                let platforms_dtls=div_pltf;
+
+                card.addEventListener('click',()=>{
+                    getDetails(`${elm.id}`,`${elm.background_image}`,`${elm.name}`,`${elm.description}`,`${elm.reddit_url}`,`${platforms_dtls}`,`${elm.released}`,`${elm.rating}`,`${elm.updated}`)
+                }) ;
+
+               div_pltf='';
+               platforms=[];
+                
+            })
+
+             isload=0;
+             if(data.results.length>=20){
+                 next.style.display='flex';
+             }else{
+                 next.style.display='none';
+             }
+  
+
+          //hna kanchof wach list 3ara wla la , 3la 9ibal search
+            if(data.results.length<=0){
+                     let ndiv =document.createElement('div');
+                     ndiv.innerHTML=`
+                          <div class="flex justify-center w-screen"><img class="h-52 sm:h-80" src='./images/not_fond.png'></div>
+                     `
+                     x.appendChild(ndiv);
+            } 
+            
+            result=data.next;
+            loadingDiv.remove();
+            
+}
+
+getData(url);
+
+//onclick add mor 20 cart
+next.addEventListener('click',()=>{
+     if(result==null){
+         next.style.display='none';
+     }
+     getData(result);   
+})
+
+//focus in input shearch 
+
+document.querySelector('#inp_shearch').addEventListener('focus',()=>{
+         document.querySelector('#div_shearch').classList.add('div_input_focus');
+         document.querySelector('#img-log').classList.add("img_log");
+})
+
+//get valeu input 
+
+let url_search ;
+let valeu_input='';
+document.querySelector('#inp_shearch').addEventListener('input',(e)=>{     
+      valeu_input= e.target.value;
+      url_search= `https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20&search=${valeu_input}`;
+})
+
+document.querySelector('#inp_shearch').addEventListener('blur',()=>{ 
+        document.querySelector('#div_shearch').classList.remove('div_input_focus');  
+        if(valeu_input==''){
+              return;
+        }else{
+               Array.from(x.children).forEach(node=>{
+                 node.remove();
+                }) 
+
+                getData(url_search);                
+        }
+        
+})
+
+/*favorit*/
+
+function addFavorites(element,id,name,img,rating,updated,platforms,description,released){
+        localData=JSON.parse(localStorage.getItem('likes'));
+
+        if(element.dataset.like=='noLiked'){
+              for(let i=0;i<localData.length;i++){
+                      if(id==localData[i].id){
+                       return;
+                   }
+              }
+            
+              element.parentNode.innerHTML=`<i onclick="addFavorites(this,'${id}','${name}','${img}','${rating}','${updated}','${platforms}','${description}','${released}')" class="text-[#9006ac9d]  hover:text-gray-400  fa-solid fa-heart"></i>`;
+             
+              element.dataset.like='like';
+             
+              localData=[...localData,{id:id,img:img,name:name,rating:rating,updated:updated,platforms:platforms,description:description,released:released}];
+              localStorage.setItem('likes',JSON.stringify(localData));
+
+        }else{
+              element.parentNode.innerHTML=`<i onclick="addFavorites(this,'${id}','${name}','${img}','${rating}','${updated}','${platforms}','${description}','${released}')" data-like="noLiked" class="fa-regular fa-heart text-gray-400 hover:text-[#9006ac9d] "></i>`;
+             
+              element.dataset.like='noLike';
+
+              localData=localData.filter(like=>like.id!=id);
+              localStorage.setItem('likes',JSON.stringify(localData));
+         }
+}
+
+
+
+//filter----->platforms
+document.querySelector('#platformSelect').addEventListener('change',(e)=>{
+           let url ;
+           Array.from(x.children).forEach(node=>{
+                 node.remove();
+                }) 
+          let val=e.target.value;
+          if(val=='Toutes'){
+             url="https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20";
+             
+          }else{
+             url =`https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20&platform=${val}`;
+          }
+          getData(url);
+
+})
+
+//filter----->Genres
+
+document.querySelector('#genreSelect').addEventListener('change',(e)=>{
+           let url ;
+           Array.from(x.children).forEach(node=>{
+                 node.remove();
+                }) 
+          let val=e.target.value;
+          if(val=='Toutes'){
+             url="https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20";
+             
+          }else{
+             url =`https://debuggers-games-api.duckdns.org/api/games?page=1&limit=20&genre=${val}`;
+          }
+          getData(url);
+
+})
+
+//add details  :
+
+function getDetails(id,img,name,description,reddit,platforms,released,rating,update){
+          localStorage.setItem('details',JSON.stringify({id:id,img:img,name:name,description:description,reddit:reddit,
+platforms:platforms,released:released,rating:rating,update:update}))
+}
+
+//sidebar----------------------
+
+  const sidebarBtn = document.getElementById('sidebar-btn');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarClose = document.getElementById('sidebar-close');
+
+  //katban 
+  sidebarBtn.addEventListener('click', () => {
+    sidebar.classList.remove('hidden');
+    setTimeout(() => {
+      sidebar.classList.remove('translate-x-64'); 
+    }, 10);
+  });
+
+  // kat7ayad
+  sidebarClose.addEventListener('click', () => {
+    sidebar.classList.add('translate-x-64'); 
+    setTimeout(() => {
+      sidebar.classList.add('hidden');
+    }, 300); 
+  });
+
+  
