@@ -1,283 +1,584 @@
-// creation locvalStorage
-// localStorage.setItem('likes','[]')
 
-//jib data li localStorage
-let localData=JSON.parse(localStorage.getItem('likes'));
+/* =========================================
+   RAWG VIDEO GAMES APP
+   HTML + CSS + JavaScript
+========================================= */
 
-//list icons platforms
-let iconsPlat =[  {'type':'PC','data':'<i class="text-[13px] text-gray-400 fa-brands fa-windows"></i>'}
-                 ,{'type':'PlayStation','data':'<i class="text-[13px] text-gray-400 fa-brands fa-playstation"></i>'}
-                 ,{'type':'Xbox','data':'<i class="text-[13px] text-gray-400 fa-brands fa-xbox"></i>'}
-                 ,{'type':'Linux','data':'<i class="text-[13px] text-gray-400 fa-brands fa-linux"></i>'}
-                 ,{'type':'Nintendo','data':'<i class="text-[13px] text-gray-400 fa-solid fa-gamepad"></i>'}
-               ];
+// 1. CONFIGURATION
+const API_KEY = 'e7cef097d7b447a8babd4c45651f0df4';
 
-//hero section :
-const hero =document.querySelector('#hero-section');
-hero.style.backgroundImage = "url('./images/Background.png')";
+const API_URL = 'https://api.rawg.io/api/games';
+const PAGE_SIZE = 20;
 
-//cart continer
-const x =document.querySelector('#x');
-let url="https://api.rawg.io/api/games?key=e7cef097d7b447a8babd4c45651f0df4&page=1&limit=20";
-
-const next =document.querySelector("#next");
-
-// pour sauvegarder le next url
-let result ;
-//bach maw9a3ch lodin o loeding l2asli kayn
-let isload=0;
-
-async function getData(urlx){
-          //list platforms
-          let platforms =[];
-
-          //f7alat loading ba9i ki loadi
-          if(isload===1){
-              return ;
-          }
-            const loadingDiv = document.createElement('div');
-            loadingDiv.innerHTML='<div class="loadings"><div></div><div></div><div></div></div>'
-
-            isload=1;
-
-            loadingDiv.classList.add('loading');
-            x.appendChild(loadingDiv);
-            x.className='grid md:grid-cols-2 md:gap-x-8 lg:grid-cols-3 lg:grid-cols-4   gap-4 xl:gap-[18px] '
-            const response = await fetch(urlx);
-            const data = await response.json();
-
-          //crete element in dom
-     data.results.forEach(elm=>{
-              
-          const card =document.createElement('div');
-          card.className='max-w-[87%] flex flex-col  rounded-[16px] shadow-md hover:scale-[1.05] transition-transform border border-gray-600  p-5 hover:shadow-[0px_0px_12px_rgba(151,173,172,0.210)] sm:max-w-[431px]  md:max-w-[341px] lg:max-w-[281px] justify-self-center';
-
-          //get platforms game 
-
-                elm.parent_platforms.forEach((platf)=>{
-                         platforms=[...platforms,platf.platform.name];
-                })
-                
-                let div_pltf='';
-                platforms.forEach(plat=>{
-                      iconsPlat.forEach(icon=>{
-                           if(icon.type==plat){
-                                
-                                div_pltf+=icon.data;
-                           }
-                           
-                      })
-                })
-
-
-          //check card liked or not
-                  
-          let isliked;
-          let cmp=0;
-          localData.forEach(data=>{
-                  if(data.id ==elm.id ){
-                       cmp++;
-                  }
-          });
-     
-     //tra liya mochkil kal9a {'} f description 
-          let derpt=elm.description.replace(/'/g, "");
-          derpt = derpt.replace(/(\r\n|\n|\r)/g, " ");
-       //hna bach m3a dakhla iban liya wach l9alb 3amar wla la (liked or noLiked)
-          if(cmp==0){
-               isliked=`<i onclick="addFavorites(this,'${elm.id}','${elm.name}','${elm.background_image}','${elm.rating}','${elm.updated}','${platforms}','${derpt}','${elm.released}')" data-like="noLiked" class="fa-regular fa-heart text-gray-400 hover:text-[#9006ac9d] "></i>`
-          }else{
-               isliked=`<i onclick="addFavorites(this,'${elm.id}','${elm.name}','${elm.backgroundImage}','${elm.rating}','${elm.updated}','${platforms}','${derpt},'${elm.released}')" data-like="Liked" class="text-[#9006ac9d]  hover:text-gray-400  fa-solid fa-heart"></i>`
-          }
-                
-                card.innerHTML = `<div class="flex justify-between h-12" >
-                 <div id='plat_catr' class='flex gap-2'>${div_pltf}</div> <span class='text-end pb-4'>${isliked}</span></div>
-                            <a href="./details.html"> 
-                            <div class="w-full h-40">
-                               <img src="${elm.background_image}" alt="${elm.name}" class="w-full h-full object-cover rounded  min-w-[280px] max-w-[280px] sm:min-w-[340px] md:min-w-[300px] lg:min-w-[240px]">
-                            </div>
-
-                            <div class="p-3">
-                                  <h3 class="text-sm  sm:text-[18px] font-semibold text-white truncate">${elm.name}</h3>
-                        
-                                  <div class="mt-[8px] flex items-center justify-between text-xs text-gray-500">
-                                    <span> ⨂ ${elm.rating }</span>
-                                  </div>
-                                   <div class="mt-[18px] flex items-center justify-between text-xs text-gray-500">
-                                        <span class="text-gray-300">updated : </span> 
-                                        <span>${elm.updated }</span>
-                                    </div>
-                            </div>
-                            </a> `;
-                            
-                x.appendChild(card);
-                //bach njib li platform , 7it kitamhaw f div_pltf='';
-                let platforms_dtls=div_pltf;
-
-                card.addEventListener('click',()=>{
-                    getDetails(`${elm.id}`,`${elm.background_image}`,`${elm.name}`,`${elm.description}`,`${elm.reddit_url}`,`${platforms_dtls}`,`${elm.released}`,`${elm.rating}`,`${elm.updated}`)
-                }) ;
-
-               div_pltf='';
-               platforms=[];
-                
-            })
-
-             isload=0;
-             if(data.results.length>=20){
-                 next.style.display='flex';
-             }else{
-                 next.style.display='none';
-             }
-  
-
-          //hna kanchof wach list 3ara wla la , 3la 9ibal search
-            if(data.results.length<=0){
-                     let ndiv =document.createElement('div');
-                     ndiv.innerHTML=`
-                          <div class="flex justify-center w-screen"><img class="h-52 sm:h-80" src='./images/not_fond.png'></div>
-                     `
-                     x.appendChild(ndiv);
-            } 
-            
-            result=data.next;
-            loadingDiv.remove();
-            
+// 2. LOCAL STORAGE
+function readFavorites() {
+    try {
+        const data = JSON.parse(localStorage.getItem('likes') || '[]');
+        return Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.error('Erreur de lecture des favoris:', error);
+        return [];
+    }
 }
 
-getData(url);
+let localData = readFavorites();
 
-//onclick add mor 20 cart
-next.addEventListener('click',()=>{
-     if(result==null){
-         next.style.display='none';
-     }
-     getData(result);   
-})
+function saveFavorites() {
+    localStorage.setItem('likes', JSON.stringify(localData));
+}
 
-//focus in input shearch 
+// 3. PLATFORM ICONS
+const iconsPlat = [
+    {
+        type: 'PC',
+        data: '<i class="text-[13px] text-gray-400 fa-brands fa-windows"></i>'
+    },
+    {
+        type: 'PlayStation',
+        data: '<i class="text-[13px] text-gray-400 fa-brands fa-playstation"></i>'
+    },
+    {
+        type: 'Xbox',
+        data: '<i class="text-[13px] text-gray-400 fa-brands fa-xbox"></i>'
+    },
+    {
+        type: 'Linux',
+        data: '<i class="text-[13px] text-gray-400 fa-brands fa-linux"></i>'
+    },
+    {
+        type: 'Nintendo',
+        data: '<i class="text-[13px] text-gray-400 fa-solid fa-gamepad"></i>'
+    }
+];
 
-document.querySelector('#inp_shearch').addEventListener('focus',()=>{
-         document.querySelector('#div_shearch').classList.add('div_input_focus');
-         document.querySelector('#img-log').classList.add("img_log");
-})
+// 4. DOM ELEMENTS
+const hero = document.querySelector('#hero-section');
+const x = document.querySelector('#x');
+const next = document.querySelector('#next');
+const searchInput = document.querySelector('#inp_shearch');
+const searchContainer = document.querySelector('#div_shearch');
+const searchLogo = document.querySelector('#img-log');
+const platformSelect = document.querySelector('#platformSelect');
+const genreSelect = document.querySelector('#genreSelect');
 
-//get valeu input 
+if (hero) {
+    hero.style.backgroundImage = "url('./images/Background.png')";
+}
 
-let url_search ;
-let valeu_input='';
-document.querySelector('#inp_shearch').addEventListener('input',(e)=>{     
-      valeu_input= e.target.value;
-      url_search= `https://api.rawg.io/api/games?key=e7cef097d7b447a8babd4c45651f0df4&page=1&limit=20&search=${valeu_input}`;
-})
+// 5. STATE
+let nextUrl = null;
+let isLoading = false;
+let searchTimer = null;
+let currentController = null;
+let requestId = 0;
+let activeUrl = null;
 
-document.querySelector('#inp_shearch').addEventListener('blur',()=>{ 
-        document.querySelector('#div_shearch').classList.remove('div_input_focus');  
-        if(valeu_input==''){
-              return;
-        }else{
-               Array.from(x.children).forEach(node=>{
-                 node.remove();
-                }) 
+// 6. HELPERS
 
-                getData(url_search);                
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+}
+
+function buildUrl(options = {}) {
+    const params = new URLSearchParams({
+        key: API_KEY,
+        page: '1',
+        page_size: String(PAGE_SIZE)
+    });
+
+    if (options.search) {
+        params.set('search', options.search);
+    }
+
+    if (options.platform) {
+        params.set('platforms', options.platform);
+    }
+
+    if (options.genre) {
+        params.set('genres', options.genre);
+    }
+
+    return `${API_URL}?${params.toString()}`;
+}
+
+function getPlatformNames(game) {
+    const platforms = Array.isArray(game.parent_platforms)
+        ? game.parent_platforms
+        : [];
+
+    return platforms
+        .map(item => item.platform?.name)
+        .filter(Boolean);
+}
+
+function getPlatformIcons(game) {
+    const names = getPlatformNames(game);
+
+    return names.map(name => {
+        const icon = iconsPlat.find(item => item.type === name);
+        return icon ? icon.data : '';
+    }).join('');
+}
+
+function showMessage(message) {
+    if (!x) return;
+
+    const div = document.createElement('div');
+    div.className = 'col-span-full text-center text-gray-300 p-6';
+    div.textContent = message;
+    x.appendChild(div);
+}
+
+function showLoading() {
+    if (!x) return null;
+
+    const div = document.createElement('div');
+    div.className = 'loading col-span-full flex justify-center p-5';
+
+    div.innerHTML = `
+        <div class="loadings">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    `;
+
+    x.appendChild(div);
+    return div;
+}
+
+function updateNextButton(url) {
+    if (!next) return;
+
+    nextUrl = url || null;
+    next.style.display = nextUrl ? 'flex' : 'none';
+}
+
+function formatDate(date) {
+    if (!date) return 'Non disponible';
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return String(date);
+    }
+
+    return parsedDate.toLocaleDateString('fr-FR');
+}
+
+// 7. FAVORITES
+
+function isFavorite(id) {
+    return localData.some(game => String(game.id) === String(id));
+}
+
+function createFavoriteButton(game) {
+    const button = document.createElement('button');
+
+    button.type = 'button';
+    button.className = 'favorite-btn text-end pb-4';
+    button.setAttribute('aria-label', 'Ajouter aux favoris');
+
+    const liked = isFavorite(game.id);
+
+    button.dataset.like = liked ? 'Liked' : 'noLiked';
+
+    button.innerHTML = liked
+        ? '<i class="fa-solid fa-heart text-[#9006ac9d] hover:text-gray-400"></i>'
+        : '<i class="fa-regular fa-heart text-gray-400 hover:text-[#9006ac9d]"></i>';
+
+    button.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        addFavorites(game, button);
+    });
+
+    return button;
+}
+
+function addFavorites(gameOrElement, button) {
+    // Supports addFavorites(game, button) and old-style calls.
+    let game = gameOrElement;
+
+    if (!game || typeof game !== 'object' || !('id' in game)) {
+        const id = arguments[1];
+
+        game = {
+            id,
+            name: arguments[2],
+            img: arguments[3],
+            rating: arguments[4],
+            updated: arguments[5],
+            platforms: arguments[6],
+            description: arguments[7],
+            released: arguments[8]
+        };
+
+        button = gameOrElement;
+    }
+
+    const id = String(game.id);
+    const index = localData.findIndex(
+        item => String(item.id) === id
+    );
+
+    if (index === -1) {
+        const favorite = {
+            id: game.id,
+            name: game.name || '',
+            img: game.img || game.background_image || '',
+            rating: game.rating ?? '',
+            updated: game.updated || '',
+            platforms: game.platforms || '',
+            description: game.description || '',
+            released: game.released || ''
+        };
+
+        localData.push(favorite);
+    } else {
+        localData.splice(index, 1);
+    }
+
+    saveFavorites();
+
+    // Update the button immediately.
+    if (button instanceof HTMLElement) {
+        const liked = isFavorite(id);
+
+        button.dataset.like = liked ? 'Liked' : 'noLiked';
+
+        button.innerHTML = liked
+            ? '<i class="fa-solid fa-heart text-[#9006ac9d] hover:text-gray-400"></i>'
+            : '<i class="fa-regular fa-heart text-gray-400 hover:text-[#9006ac9d]"></i>';
+    }
+}
+
+// 8. GAME DETAILS
+// Save the selected game for details.html.
+
+function getDetails(
+    id,
+    img,
+    name,
+    description,
+    reddit,
+    platforms,
+    released,
+    rating,
+    updated
+) {
+    const details = {
+        id,
+        img,
+        name,
+        description,
+        reddit,
+        platforms,
+        released,
+        rating,
+        update: updated
+    };
+
+    localStorage.setItem('details', JSON.stringify(details));
+}
+
+// 9. CREATE GAME CARD
+
+function createGameCard(game) {
+    const card = document.createElement('div');
+
+    card.className = [
+        'max-w-[87%]',
+        'flex flex-col',
+        'rounded-[16px]',
+        'shadow-md',
+        'hover:scale-[1.05]',
+        'transition-transform',
+        'border border-gray-600',
+        'p-5',
+        'hover:shadow-[0px_0px_12px_rgba(151,173,172,0.210)]',
+        'sm:max-w-[431px]',
+        'md:max-w-[341px]',
+        'lg:max-w-[281px]',
+        'justify-self-center'
+    ].join(' ');
+
+    const image = game.background_image || './images/not_fond.png';
+    const platformIcons = getPlatformIcons(game);
+    const platformNames = getPlatformNames(game);
+
+    const favoriteButton = createFavoriteButton(game);
+
+    card.innerHTML = `
+        <div class="flex justify-between h-12">
+            <div class="flex gap-2 platform-icons">
+                ${platformIcons}
+            </div>
+        </div>
+
+        <a href="./details.html" class="game-details-link">
+            <div class="w-full h-40">
+                <img
+                    src="${escapeHtml(image)}"
+                    alt="${escapeHtml(game.name)}"
+                    loading="lazy"
+                    class="w-full h-full object-cover rounded min-w-[280px] max-w-[280px] sm:min-w-[340px] md:min-w-[300px] lg:min-w-[240px]"
+                >
+            </div>
+
+            <div class="p-3">
+                <h3 class="text-sm sm:text-[18px] font-semibold text-white truncate">
+                    ${escapeHtml(game.name)}
+                </h3>
+
+                <div class="mt-[8px] flex items-center justify-between text-xs text-gray-500">
+                    <span>★ ${escapeHtml(game.rating ?? 'N/A')}</span>
+                </div>
+
+                <div class="mt-[18px] flex items-center justify-between text-xs text-gray-500">
+                    <span class="text-gray-300">Updated:</span>
+                    <span>${escapeHtml(formatDate(game.updated))}</span>
+                </div>
+            </div>
+        </a>
+    `;
+
+    // Insert the favorite button into the top row.
+    const topRow = card.querySelector('.flex.justify-between.h-12');
+    if (topRow) {
+        topRow.appendChild(favoriteButton);
+    }
+
+    // Save the game before opening details.html.
+    const link = card.querySelector('.game-details-link');
+
+    link.addEventListener('click', () => {
+        getDetails(
+            game.id,
+            image,
+            game.name || '',
+            game.description || '',
+            game.reddit_url || '',
+            platformIcons,
+            game.released || '',
+            game.rating ?? '',
+            game.updated || ''
+        );
+    });
+
+    return card;
+}
+
+// 10. FETCH GAMES
+
+async function getData(url, options = {}) {
+    if (!x || !url) return;
+
+    const append = options.append === true;
+
+    // Prevent duplicate pagination requests.
+    if (isLoading) return;
+
+    // Abort an earlier search/filter request.
+    if (!append && currentController) {
+        currentController.abort();
+    }
+
+    if (!append) {
+        requestId++;
+        activeUrl = url;
+        currentController = new AbortController();
+
+        x.replaceChildren();
+        updateNextButton(null);
+    }
+
+    const thisRequestId = requestId;
+    const controller = currentController;
+    const loadingDiv = showLoading();
+
+    isLoading = true;
+
+    x.className =
+        'grid md:grid-cols-2 md:gap-x-8 lg:grid-cols-3 lg:grid-cols-4 gap-4 xl:gap-[18px]';
+
+    try {
+        const response = await fetch(url, {
+            signal: controller.signal
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
-})
 
-/*favorit*/
+        const data = await response.json();
 
-function addFavorites(element,id,name,img,rating,updated,platforms,description,released){
-        localData=JSON.parse(localStorage.getItem('likes'));
+        // Ignore responses from outdated requests.
+        if (thisRequestId !== requestId) return;
 
-        if(element.dataset.like=='noLiked'){
-              for(let i=0;i<localData.length;i++){
-                      if(id==localData[i].id){
-                       return;
-                   }
-              }
-            
-              element.parentNode.innerHTML=`<i onclick="addFavorites(this,'${id}','${name}','${img}','${rating}','${updated}','${platforms}','${description}','${released}')" class="text-[#9006ac9d]  hover:text-gray-400  fa-solid fa-heart"></i>`;
-             
-              element.dataset.like='like';
-             
-              localData=[...localData,{id:id,img:img,name:name,rating:rating,updated:updated,platforms:platforms,description:description,released:released}];
-              localStorage.setItem('likes',JSON.stringify(localData));
+        if (!Array.isArray(data.results)) {
+            throw new Error('Réponse RAWG invalide.');
+        }
 
-        }else{
-              element.parentNode.innerHTML=`<i onclick="addFavorites(this,'${id}','${name}','${img}','${rating}','${updated}','${platforms}','${description}','${released}')" data-like="noLiked" class="fa-regular fa-heart text-gray-400 hover:text-[#9006ac9d] "></i>`;
-             
-              element.dataset.like='noLike';
+        if (data.results.length === 0 && !append) {
+            showMessage('Aucun jeu trouvé.');
+        } else {
+            data.results.forEach(game => {
+                x.appendChild(createGameCard(game));
+            });
+        }
 
-              localData=localData.filter(like=>like.id!=id);
-              localStorage.setItem('likes',JSON.stringify(localData));
-         }
+        updateNextButton(data.next);
+
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+
+        console.error('Erreur RAWG API:', error);
+
+        if (thisRequestId === requestId) {
+            showMessage(
+                'Impossible de charger les jeux. Vérifiez votre connexion et votre clé API.'
+            );
+            updateNextButton(null);
+        }
+
+    } finally {
+        if (loadingDiv) loadingDiv.remove();
+
+        if (thisRequestId === requestId) {
+            isLoading = false;
+        }
+    }
 }
 
+// 11. INITIAL LOAD
 
+getData(buildUrl());
 
-//filter----->platforms
-document.querySelector('#platformSelect').addEventListener('change',(e)=>{
-           let url ;
-           Array.from(x.children).forEach(node=>{
-                 node.remove();
-                }) 
-          let val=e.target.value;
-          if(val=='Toutes'){
-             url="https://api.rawg.io/api/games?key=e7cef097d7b447a8babd4c45651f0df4&page=1&limit=20";
-             
-          }else{
-             url =`https://api.rawg.io/api/games?key=e7cef097d7b447a8babd4c45651f0df4&page=1&limit=20&platform=${val}`;
-          }
-          getData(url);
+// 12. LOAD MORE GAMES
 
-})
+if (next) {
+    next.addEventListener('click', () => {
+        if (!nextUrl || isLoading) return;
 
-//filter----->Genres
-
-document.querySelector('#genreSelect').addEventListener('change',(e)=>{
-           let url ;
-           Array.from(x.children).forEach(node=>{
-                 node.remove();
-                }) 
-          let val=e.target.value;
-          if(val=='Toutes'){
-             url="https://api.rawg.io/api/games?key=e7cef097d7b447a8babd4c45651f0df4&page=1&limit=20";
-             
-          }else{
-             url =`https://api.rawg.io/api/games?key=e7cef097d7b447a8babd4c45651f0df4&page=1&limit=20&genre=${val}`;
-          }
-          getData(url);
-
-})
-
-//add details  :
-
-function getDetails(id,img,name,description,reddit,platforms,released,rating,update){
-          localStorage.setItem('details',JSON.stringify({id:id,img:img,name:name,description:description,reddit:reddit,
-platforms:platforms,released:released,rating:rating,update:update}))
+        getData(nextUrl, { append: true });
+    });
 }
 
-//sidebar----------------------
+// 13. SEARCH INPUT
 
-  const sidebarBtn = document.getElementById('sidebar-btn');
-  const sidebar = document.getElementById('sidebar');
-  const sidebarClose = document.getElementById('sidebar-close');
+if (searchInput) {
+    searchInput.addEventListener('focus', () => {
+        searchContainer?.classList.add('div_input_focus');
+        searchLogo?.classList.add('img_log');
+    });
 
-  //katban 
-  sidebarBtn.addEventListener('click', () => {
-    sidebar.classList.remove('hidden');
-    setTimeout(() => {
-      sidebar.classList.remove('translate-x-64'); 
-    }, 10);
-  });
+    searchInput.addEventListener('input', event => {
+        clearTimeout(searchTimer);
 
-  // kat7ayad
-  sidebarClose.addEventListener('click', () => {
-    sidebar.classList.add('translate-x-64'); 
-    setTimeout(() => {
-      sidebar.classList.add('hidden');
-    }, 300); 
-  });
+        searchTimer = setTimeout(() => {
+            const search = event.target.value.trim();
 
-  
+            const platform = platformSelect?.value || '';
+            const genre = genreSelect?.value || '';
+
+            const options = {};
+
+            if (search) options.search = search;
+            if (platform && platform !== 'Toutes') {
+                options.platform = platform;
+            }
+            if (genre && genre !== 'Toutes') {
+                options.genre = genre;
+            }
+
+            getData(buildUrl(options));
+        }, 350);
+    });
+
+    searchInput.addEventListener('blur', () => {
+        searchContainer?.classList.remove('div_input_focus');
+        searchLogo?.classList.remove('img_log');
+    });
+}
+
+// 14. PLATFORM FILTER
+
+if (platformSelect) {
+    platformSelect.addEventListener('change', () => {
+        const options = {};
+
+        const search = searchInput?.value.trim() || '';
+        const platform = platformSelect.value;
+        const genre = genreSelect?.value || '';
+
+        if (search) options.search = search;
+
+        if (platform && platform !== 'Toutes') {
+            options.platform = platform;
+        }
+
+        if (genre && genre !== 'Toutes') {
+            options.genre = genre;
+        }
+
+        getData(buildUrl(options));
+    });
+}
+
+// 15. GENRE FILTER
+
+if (genreSelect) {
+    genreSelect.addEventListener('change', () => {
+        const options = {};
+
+        const search = searchInput?.value.trim() || '';
+        const platform = platformSelect?.value || '';
+        const genre = genreSelect.value;
+
+        if (search) options.search = search;
+
+        if (platform && platform !== 'Toutes') {
+            options.platform = platform;
+        }
+
+        if (genre && genre !== 'Toutes') {
+            options.genre = genre;
+        }
+
+        getData(buildUrl(options));
+    });
+}
+
+// 16. SIDEBAR
+
+const sidebarBtn = document.getElementById('sidebar-btn');
+const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebar-close');
+
+if (sidebarBtn && sidebar) {
+    sidebarBtn.addEventListener('click', () => {
+        sidebar.classList.remove('hidden');
+
+        requestAnimationFrame(() => {
+            sidebar.classList.remove('translate-x-64');
+        });
+    });
+}
+
+if (sidebarClose && sidebar) {
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.add('translate-x-64');
+
+        setTimeout(() => {
+            sidebar.classList.add('hidden');
+        }, 300);
+    });
+}
